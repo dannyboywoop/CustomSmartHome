@@ -58,6 +58,7 @@ class BlindController:
         self.blind_position_max = None
         add_event_detect(BlindController.BUTTON_PIN, FALLING)
         while not max_position_set:
+            # Rotate the motor in 5 degree increments at 50% speed.
             self.motor.rotate_by_angle(5, speed=50)
             self.blind_position += 5
             max_position_set = event_detected(BlindController.BUTTON_PIN)
