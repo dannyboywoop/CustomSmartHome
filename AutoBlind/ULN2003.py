@@ -83,3 +83,7 @@ class ULN2003(MotorDriverInterface):
         delay = self._delay_for_speed(speed)
         for _ in range(steps_to_perform):
             self._perform_step(direction, delay)
+
+        # reset pin states.
+        output(ULN2003.OUTPUT_PINS, LOW)
+        sleep(ULN2003.MIN_DELAY)

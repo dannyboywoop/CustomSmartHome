@@ -5,7 +5,33 @@ This module provides a simple interface for motor driver controller classes.
 from enum import Enum
 
 
-class MotorDriverInterface:
+class MotorDriverMeta(type):
+    """A motor driver metaclass.
+
+    It that will be used for motor driver class creation.
+    """
+
+    def __instancecheck__(cls, instance):
+        """Check if 'instance' is an instance of the MotorDriverInterface.
+
+        Returns:
+            bool: True if 'instance' is an instance of MotorDriverInterface,
+                False otherwise.
+        """
+        return cls.__subclasscheck__(type(instance))
+
+    def __subclasscheck__(cls, subclass):
+        """Check if 'subclass' is a subclass of the MotorDriverInterface.
+
+        Returns:
+            bool: True if 'subclass' is a subclass of MotorDriverInterface,
+                False otherwise.
+        """
+        return (hasattr(subclass, 'rotate_by_angle')
+                and callable(subclass.rotate_by_angle))
+
+
+class MotorDriverInterface(metaclass=MotorDriverMeta):
     """Interface for motor driver controller classes."""
 
     class Direction(Enum):
