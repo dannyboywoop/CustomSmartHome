@@ -81,6 +81,5 @@ class ULN2003(MotorDriverInterface):
         steps_to_perform = int(round(
                                 ULN2003.STEPS_PER_ROTATION * angle / 360))
         delay = self._delay_for_speed(speed)
-        print(delay)
         for _ in range(steps_to_perform):
             self._perform_step(direction, delay)
