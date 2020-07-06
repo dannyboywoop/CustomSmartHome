@@ -1,14 +1,14 @@
-"""MotorDriver controller class.
+"""ULN2003 Motor Driver controller class.
 
-This module acts acts as a hardware abstraction layer to allow a ULN2003
+This module acts as a hardware abstraction layer to allow a ULN2003
 stepper motor to be controlled easily and accurately.
 """
 from RPi.GPIO import HIGH, LOW, BOARD, OUT, setmode, setup, cleanup, output
 from time import sleep
-from enum import Enum
+from MotorDriverInterface import MotorDriverInterface
 
 
-class MotorDriver:
+class ULN2003(MotorDriverInterface):
     """Class used to control a ULN2003 stepper motor/driver."""
 
     OUTPUT_PINS = [12, 11, 13, 15]
@@ -21,27 +21,18 @@ class MotorDriver:
     STEPS_PER_ROTATION = 509.4716
     MIN_DELAY = 0.002
 
-    class Direction(Enum):
-        """Enum type for rotation directions of motor."""
-
-        CLOCKWISE = 1
-        ANTICLOCKWISE = -1
-
-        def opposite(self):
-            """Return the opposite Direction enum."""
-            opposite_value = self.value * -1
-            return MotorDriver.Direction(opposite_value)
-
     def __init__(self):
         """Initialise GPIO pins."""
         setmode(BOARD)
-        setup(MotorDriver.OUTPUT_PINS, OUT, initial=LOW)
+        setup(ULN2003.OUTPUT_PINS, OUT, initial=LOW)
 
     def __del__(self):
         """Reset all GPIO pins."""
         cleanup()
 
-    def perform_step(self, direction=Direction.CLOCKWISE, delay=MIN_DELAY):
+    def _perform_step(self,
+                      direction=MotorDriverInterface.Direction.CLOCKWISE,
+                      delay=MIN_DELAY):
         """Perform 1 full step of the motor.
 
         Args:
@@ -50,8 +41,8 @@ class MotorDriver:
             delay (float): Time in seconds to wait between each update to
                 motor controller pin states.
         """
-        for state in MotorDriver.PIN_STATES[::direction.value]:
-            output(MotorDriver.OUTPUT_PINS, state)
+        for state in ULN2003.PIN_STATES[::direction.value]:
+            output(ULN2003.OUTPUT_PINS, state)
             sleep(delay)
 
     def _delay_for_speed(self, speed):
@@ -67,26 +58,29 @@ class MotorDriver:
         """
         if speed <= 0:
             raise ArithmeticError
-        delay = MotorDriver.MIN_DELAY * 100 / speed
-        return max(delay, MotorDriver.MIN_DELAY)
+        delay = ULN2003.MIN_DELAY * 100 / speed
+        return max(delay, ULN2003.MIN_DELAY)
 
-    def rotate_by_angle(self, angle, direction=Direction.CLOCKWISE, speed=100):
+    def rotate_by_angle(self,
+                        angle,
+                        direction=MotorDriverInterface.Direction.CLOCKWISE,
+                        speed=100):
         """Rotate the motor through a given angle.
 
         Args:
             angle (float): The angle, in degrees, through which the motor is
                 to be rotated.
             direction (MotorDriver.Direction): The direction of rotation of the
-                motor.
+                motor. Default is clockwise.
             speed (float): The desired speed as a percentage of the max speed.
-                Must be greater than 0.
+                Must be greater than 0. Default is 100.
         """
         if angle < 0:
             angle = abs(angle)
             direction = direction.opposite()
         steps_to_perform = int(round(
-                                MotorDriver.STEPS_PER_ROTATION * angle / 360))
+                                ULN2003.STEPS_PER_ROTATION * angle / 360))
         delay = self._delay_for_speed(speed)
         print(delay)
         for _ in range(steps_to_perform):
-            self.perform_step(direction, delay)
+            self._perform_step(direction, delay)
