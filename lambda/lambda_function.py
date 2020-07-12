@@ -17,7 +17,8 @@ def lambda_handler(request, context):
         aer = AlexaResponse(
             name='ErrorResponse',
             payload={'type': 'INVALID_DIRECTIVE',
-                     'message': 'Missing key: directive, Is the request a valid Alexa Directive?'})
+                     'message': 'Missing key: directive, ' +
+                     'Is the request a valid Alexa Directive?'})
         return send_response(aer.get())
 
     # Check the payload version
@@ -26,7 +27,7 @@ def lambda_handler(request, context):
         aer = AlexaResponse(
             name='ErrorResponse',
             payload={'type': 'INTERNAL_ERROR',
-                     'message': 'This skill only supports Smart Home API version 3'})
+                     'message': 'This skill only supports Smart Home API v3.'})
         return send_response(aer.get())
 
     # Crack open the request and see what is being requested
@@ -38,67 +39,87 @@ def lambda_handler(request, context):
     if namespace == 'Alexa.Authorization':
         if name == 'AcceptGrant':
             # Note: This sample accepts any grant request
-            # In your implementation you would use the code and token to get and store access tokens
             grant_code = request['directive']['payload']['grant']['code']
             grantee_token = request['directive']['payload']['grantee']['token']
-            aar = AlexaResponse(namespace='Alexa.Authorization', name='AcceptGrant.Response')
+            print(grant_code)
+            print(grantee_token)
+            aar = AlexaResponse(namespace='Alexa.Authorization',
+                                name='AcceptGrant.Response')
             return send_response(aar.get())
 
     if namespace == 'Alexa.Discovery':
         if name == 'Discover':
-            adr = AlexaResponse(namespace='Alexa.Discovery', name='Discover.Response')
+            adr = AlexaResponse(namespace='Alexa.Discovery',
+                                name='Discover.Response')
             capability_alexa = adr.create_payload_endpoint_capability()
-            capability_alexa_percentagecontroller = adr.create_payload_endpoint_capability(
-                interface='Alexa.PercentageController',
-                supported=[{'name': 'percentage'}])
+            capability_alexa_percentagecontroller =\
+                adr.create_payload_endpoint_capability(
+                    interface='Alexa.PercentageController',
+                    supported=[{'name': 'percentage'}])
             adr.add_payload_endpoint(
                 friendly_name='Blinds',
                 endpoint_id='smart_blind_01',
                 description='Custom Smart Blind',
                 display_categories=['INTERIOR_BLIND'],
-                capabilities=[capability_alexa, capability_alexa_percentagecontroller])
+                capabilities=[capability_alexa,
+                              capability_alexa_percentagecontroller])
             return send_response(adr.get())
 
     if namespace == 'Alexa.PercentageController':
-        # Note: This sample always returns a success response for either a request to TurnOff or TurnOn
         endpoint_id = request['directive']['endpoint']['endpointId']
         correlation_token = request['directive']['header']['correlationToken']
         token = request['directive']['endpoint']['scope']['token']
-        
+
         if name == 'SetPercentage':
             percentage = request['directive']['payload']['percentage']
-            state_set = set_device_state(endpoint_id=endpoint_id, state='percentage', value=percentage)
+            state_set = set_device_state(endpoint_id=endpoint_id,
+                                         state='percentage',
+                                         value=percentage)
             final_percentage = percentage
-        
+
         if name == 'AdjustPercentage':
-            percentageDelta = request['directive']['payload']['percentageDelta']
-            state_set = set_device_state(endpoint_id=endpoint_id, state='percentageDelta', value=percentageDelta)
+            percentDelta = request['directive']['payload']['percentageDelta']
+            state_set = set_device_state(endpoint_id=endpoint_id,
+                                         state='percentageDelta',
+                                         value=percentDelta)
             final_percentage = 50
 
         # Check for an error when setting the state
         if not state_set:
             return AlexaResponse(
                 name='ErrorResponse',
-                payload={'type': 'ENDPOINT_UNREACHABLE', 'message': 'Unable to reach endpoint database.'}).get()
+                payload={'type': 'ENDPOINT_UNREACHABLE',
+                         'message': 'Unable to reach endpoint database.'}
+            ).get()
 
-        apcr = AlexaResponse(correlation_token=correlation_token, endpoint_id=endpoint_id, token=token)
-        apcr.add_context_property(namespace='Alexa.PercentageController', name="percentage", value=final_percentage)
+        apcr = AlexaResponse(correlation_token=correlation_token,
+                             endpoint_id=endpoint_id,
+                             token=token)
+        apcr.add_context_property(namespace='Alexa.PercentageController',
+                                  name="percentage",
+                                  value=final_percentage)
         return send_response(apcr.get())
-    
+
     if namespace == 'Alexa' and name == 'ReportState':
         endpoint_id = request['directive']['endpoint']['endpointId']
         correlation_token = request['directive']['header']['correlationToken']
         token = request['directive']['endpoint']['scope']['token']
-        
-        
+
         state = get_device_state(endpoint_id)
         if state is None:
             return AlexaResponse(
                 name='ErrorResponse',
-                payload={'type': 'ENDPOINT_UNREACHABLE', 'message': 'Unable to reach endpoint database.'}).get()
-        
-        apcr = AlexaResponse(correlation_token=correlation_token, endpoint_id=endpoint_id, token=token, name='StateReport')
-        apcr.add_context_property(namespace='Alexa.PercentageController', name="percentage", value=state)
+                payload={'type': 'ENDPOINT_UNREACHABLE',
+                         'message': 'Unable to reach endpoint database.'}
+            ).get()
+
+        apcr = AlexaResponse(correlation_token=correlation_token,
+                             endpoint_id=endpoint_id,
+                             token=token,
+                             name='StateReport')
+        apcr.add_context_property(namespace='Alexa.PercentageController',
+                                  name="percentage",
+                                  value=state)
         return send_response(apcr.get())
 
 

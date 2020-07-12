@@ -21,7 +21,6 @@ class AlexaResponse:
                 'name': kwargs.get('name', 'Response'),
                 'messageId': str(uuid.uuid4()),
                 'payloadVersion': kwargs.get('payload_version', '3')
-                # 'correlation_token': kwargs.get('correlation_token', 'INVALID')
             },
             'endpoint': {
                 "scope": {
@@ -34,13 +33,15 @@ class AlexaResponse:
         }
 
         if 'correlation_token' in kwargs:
-            self.event['header']['correlation_token'] = kwargs.get('correlation_token', 'INVALID')
+            self.event['header']['correlation_token'] =\
+                kwargs.get('correlation_token', 'INVALID')
 
         if 'cookie' in kwargs:
             self.event['endpoint']['cookie'] = kwargs.get('cookie', '{}')
 
         # No endpoint in an AcceptGrant or Discover request
-        if self.event['header']['name'] == 'AcceptGrant.Response' or self.event['header']['name'] == 'Discover.Response':
+        if (self.event['header']['name'] == 'AcceptGrant.Response'
+           or self.event['header']['name'] == 'Discover.Response'):
             self.event.pop('endpoint')
 
     def add_context_property(self, **kwargs):
@@ -62,7 +63,8 @@ class AlexaResponse:
             'name': kwargs.get('name', 'connectivity'),
             'value': kwargs.get('value', {'value': 'OK'}),
             'timeOfSample': get_utc_timestamp(),
-            'uncertaintyInMilliseconds': kwargs.get('uncertainty_in_milliseconds', 0)
+            'uncertaintyInMilliseconds': kwargs.get(
+                'uncertainty_in_milliseconds', 0)
         }
 
     def create_payload_endpoint(self, **kwargs):
@@ -73,7 +75,8 @@ class AlexaResponse:
             'displayCategories': kwargs.get('display_categories', ['OTHER']),
             'endpointId': kwargs.get('endpoint_id', 'endpoint_0'),
             'friendlyName': kwargs.get('friendly_name', 'NULL'),
-            'manufacturerName': kwargs.get('manufacturer_name', 'Tanno Holmes Ideas')
+            'manufacturerName': kwargs.get('manufacturer_name',
+                                           'Tanno Holmes Ideas')
         }
 
         if 'cookie' in kwargs:
@@ -91,8 +94,10 @@ class AlexaResponse:
         if supported:
             capability['properties'] = {}
             capability['properties']['supported'] = supported
-            capability['properties']['proactivelyReported'] = kwargs.get('proactively_reported', True)
-            capability['properties']['retrievable'] = kwargs.get('retrievable', True)
+            capability['properties']['proactivelyReported'] =\
+                kwargs.get('proactively_reported', True)
+            capability['properties']['retrievable'] =\
+                kwargs.get('retrievable', True)
         return capability
 
     def get(self, remove_empty=True):
