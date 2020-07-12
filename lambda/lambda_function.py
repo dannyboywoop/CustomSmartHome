@@ -1,5 +1,6 @@
 import json
 from AlexaResponse import AlexaResponse
+from HTTPPostRequest import HTTPPostRequest
 
 
 def lambda_handler(request, context):
@@ -131,7 +132,8 @@ def send_response(response):
 
 
 def set_device_state(endpoint_id, state, value):
-    print(value)
+    request = HTTPPostRequest(endpoint_id, state, value)
+    request.send_request()
     return True
 
 
