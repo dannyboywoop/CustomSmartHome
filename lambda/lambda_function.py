@@ -1,6 +1,6 @@
 import json
 from AlexaResponse import AlexaResponse
-from HTTPPostRequest import HTTPPostRequest
+from SmartHomeRequest import SmartHomeRequest
 
 
 def lambda_handler(request, context):
@@ -50,78 +50,57 @@ def lambda_handler(request, context):
 
     if namespace == "Alexa.Discovery":
         if name == "Discover":
+            smart_home_response = SmartHomeRequest.send_discover_request()
+            if smart_home_response is None:
+                return endpoint_unreachable()
             adr = AlexaResponse(namespace="Alexa.Discovery",
-                                name="Discover.Response")
-            capability_alexa = adr.create_payload_endpoint_capability()
-            capability_alexa_percentagecontroller =\
-                adr.create_payload_endpoint_capability(
-                    interface="Alexa.PercentageController",
-                    supported=[{"name": "percentage"}])
-            adr.add_payload_endpoint(
-                friendly_name="Blinds",
-                endpoint_id="smart_blind_01",
-                description="Custom Smart Blind",
-                display_categories=["INTERIOR_BLIND"],
-                capabilities=[capability_alexa,
-                              capability_alexa_percentagecontroller])
+                                name="Discover.Response",
+                                payload=smart_home_response)
             return send_response(adr.get())
 
-    if namespace == "Alexa.PercentageController":
-        endpoint_id = request["directive"]["endpoint"]["endpointId"]
-        correlation_token = request["directive"]["header"]["correlationToken"]
-        token = request["directive"]["endpoint"]["scope"]["token"]
+    if namespace.endswith("Controller") or namespace.endswith("Sensor"):
+        endpoint_id, correl_token, token = get_directive_properties(request)
 
-        if name == "SetPercentage":
-            percentage = request["directive"]["payload"]["percentage"]
-            state_set = set_device_state(endpoint_id=endpoint_id,
-                                         state="percentage",
-                                         value=percentage)
-            final_percentage = percentage
-
-        if name == "AdjustPercentage":
-            percentDelta = request["directive"]["payload"]["percentageDelta"]
-            state_set = set_device_state(endpoint_id=endpoint_id,
-                                         state="percentageDelta",
-                                         value=percentDelta)
-            final_percentage = 50
-
+        smart_home_response = SmartHomeRequest.send_directive_request(request)
         # Check for an error when setting the state
-        if not state_set:
-            return AlexaResponse(
-                name="ErrorResponse",
-                payload={"type": "ENDPOINT_UNREACHABLE",
-                         "message": "Unable to reach endpoint database."}
-            ).get()
+        if smart_home_response is None:
+            return endpoint_unreachable()
 
-        apcr = AlexaResponse(correlation_token=correlation_token,
+        apcr = AlexaResponse(correlation_token=correl_token,
                              endpoint_id=endpoint_id,
                              token=token)
-        apcr.add_context_property(namespace="Alexa.PercentageController",
-                                  name="percentage",
-                                  value=final_percentage)
+        apcr.add_context_properties(smart_home_response)
         return send_response(apcr.get())
 
     if namespace == "Alexa" and name == "ReportState":
-        endpoint_id = request["directive"]["endpoint"]["endpointId"]
-        correlation_token = request["directive"]["header"]["correlationToken"]
-        token = request["directive"]["endpoint"]["scope"]["token"]
+        endpoint_id, correl_token, token = get_directive_properties(request)
 
-        state = get_device_state(endpoint_id)
-        if state is None:
-            return AlexaResponse(
-                name="ErrorResponse",
-                payload={"type": "ENDPOINT_UNREACHABLE",
-                         "message": "Unable to reach endpoint database."}
-            ).get()
+        smart_home_response = SmartHomeRequest.send_status_request(endpoint_id)
 
-        apcr = AlexaResponse(correlation_token=correlation_token,
+        if smart_home_response is None:
+            return endpoint_unreachable()
+
+        apcr = AlexaResponse(correlation_token=correl_token,
                              endpoint_id=endpoint_id,
                              token=token,
                              name="StateReport")
-        apcr.add_context_property(namespace="Alexa.PercentageController",
-                                  name="percentage",
-                                  value=state)
+        apcr.add_context_properties(smart_home_response)
         return send_response(apcr.get())
+
+
+def get_directive_properties(request):
+    endpoint_id = request["directive"]["endpoint"]["endpointId"]
+    correlation_token = request["directive"]["header"]["correlationToken"]
+    token = request["directive"]["endpoint"]["scope"]["token"]
+    return endpoint_id, correlation_token, token
+
+
+def endpoint_unreachable():
+    return AlexaResponse(
+        name="ErrorResponse",
+        payload={"type": "ENDPOINT_UNREACHABLE",
+                 "message": "Unable to reach endpoint database."}
+    ).get()
 
 
 def send_response(response):
@@ -129,13 +108,3 @@ def send_response(response):
     print("lambda_handler response -----")
     print(json.dumps(response))
     return response
-
-
-def set_device_state(endpoint_id, state, value):
-    request = HTTPPostRequest(endpoint_id, state, value)
-    request.send_request()
-    return True
-
-
-def get_device_state(endpoint_id):
-    return 70
