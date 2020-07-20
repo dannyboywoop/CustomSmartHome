@@ -9,7 +9,7 @@ class SmartHomeRequest():
 
     @staticmethod
     def send_status_request(endpoint_id):
-        return SmartHomeRequest._send_request("status/"+endpoint_id)
+        return SmartHomeRequest._send_request("status", endpoint_id.encode())
 
     @staticmethod
     def send_directive_request(directive_json):
