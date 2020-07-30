@@ -91,3 +91,7 @@ Enter your git details with the following commands:
 - `git config --global user.email johndoe@example.com`
 
 Install pip with the command `sudo apt install python3-pip`.
+
+Install pexpect with `pip3 install pexpect`.
+
+Install RPi.GPIO with `pip3 install RPi.GPIO`.
