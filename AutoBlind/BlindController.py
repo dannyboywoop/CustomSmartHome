@@ -4,8 +4,8 @@ Manages a motor driver to allow calibration and control of a connected blind.
 """
 from RPi.GPIO import (IN, PUD_UP, FALLING, setup, cleanup, setwarnings,
                       wait_for_edge, add_event_detect, event_detected)
-from MotorDriverInterface import MotorDriverInterface
 from time import sleep
+from AutoBlind.Controllers.MotorDriverInterface import MotorDriverInterface
 
 
 class BlindController:
