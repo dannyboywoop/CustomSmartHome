@@ -50,8 +50,6 @@ def get_handle(device, characteristic):
 
 def send_data_to_handle(device, handle, data):
     device.sendline("char-write-req {} {}".format(handle, data))
-    device.timeout = 60
-    device.expect("Characteristic value was written successfully")
 
 
 def send_data_to_char(device, characteristic, data):
