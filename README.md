@@ -71,6 +71,7 @@ To use WIFI, follow these steps **BEFORE** you boot your Raspberry Pi for the fi
 
 NOTE: The config info above must be well formed YAML, this can easily be checked with tools such as http://www.yamllint.com/.
 
+
 #### Raspberry Pi OS
 
 Begin by putting the SD card into the Raspberry Pi and performing the initial boot.
@@ -78,6 +79,8 @@ Begin by putting the SD card into the Raspberry Pi and performing the initial bo
 Next, launch the raspi-config command-line tool with `sudo raspi-config`.
 
 Simple ensure that the Localisation Options are set correctly, then use the wizard to setup Network Options.
+
+To allow custom smart home devices to find the RPi, you must set its "Hostname" to `TannoHub` from the Network Options menu.
 
 ### Install necessary packages
 
@@ -92,6 +95,6 @@ Enter your git details with the following commands:
 
 Install pip with the command `sudo apt install python3-pip`.
 
-Install pexpect with `pip3 install pexpect`.
+Install pexpect with `sudo pip3 install pexpect`.
 
-Install RPi.GPIO with `pip3 install RPi.GPIO`.
+Install RPi.GPIO with `sudo pip3 install RPi.GPIO`.
