@@ -13,13 +13,13 @@ class BlindController:
 
     BUTTON_PIN = 7
 
-    def __init__(self, motor_type=None):
+    def __init__(self, motor_type=None, **kwargs):
         """Initialise blind control hardware."""
         if motor_type is None:
             raise Exception("Error: Must provide a motor_type.")
         if not issubclass(motor_type, MotorDriverInterface):
             raise Exception("Error: Not a valid motor_type.")
-        self.motor = motor_type()
+        self.motor = motor_type(**kwargs)
         setup(BlindController.BUTTON_PIN, IN, pull_up_down=PUD_UP)
         self.calibrate()
 
