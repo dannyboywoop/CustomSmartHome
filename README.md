@@ -4,6 +4,24 @@
 
 Repository for code written to create and host custom smart home devices.
 
+## Project structure
+
+Below are some simple explanations as to the purpose of sub-directories within this repo.
+
+```
+CustomSmartHome
+├── lambda (code hosted as an aws_lambda function)
+├── Smart_Devices(code ran on, or used to control smart devices)
+│   └── SmartBlind (code to create a smart blind)
+│       ├── AutoBlind (Python code ran on the RPi, can control a directly-wired blind or a Bluetooth Arduino blind)
+│       └── BluetoothBlind (Code ran on a Arduino Nano 33 IoT to control a blind)
+└── TannoHolmes.com (the web server for my personal website, also manages local smart home devices)
+```
+
+The full structure of the project, along with its interactions with Amazon Alexa are shown in the diagram below.
+
+[DIAGRAM NOT YET CREATED]
+
 ## Setting up your Raspberry Pi
 
 NOTE: The Raspberry Pi I used was the Raspberry Pi 3 Model B+ Revision 1.2. Your success may vary with other RPi devices.
