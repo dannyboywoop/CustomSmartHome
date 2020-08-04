@@ -13,8 +13,9 @@ CustomSmartHome
 ├── lambda (code hosted as an aws_lambda function)
 ├── Smart_Devices(code ran on, or used to control smart devices)
 │   └── SmartBlind (code to create a smart blind)
-│       ├── AutoBlind (Python code ran on the RPi, can control a directly-wired blind or a Bluetooth Arduino blind)
-│       └── BluetoothBlind (Code ran on a Arduino Nano 33 IoT to control a blind)
+│   │   ├── AutoBlind (Python code ran on the RPi, can control a directly-wired blind or a Bluetooth Arduino blind)
+│   │   └── BluetoothBlind (Code ran on a Arduino Nano 33 IoT to control a blind)
+│   └── TempControlledFan (code to control a PWM fan based on temperature)
 └── TannoHolmes.com (the web server for my personal website, also manages local smart home devices)
 ```
 
